@@ -1,5 +1,16 @@
 {
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
-  "projects": {}
+  "projects": {
+    "about": "apps/about",
+    "about-e2e": "apps/about-e2e",
+    "host": "apps/host",
+    "host-e2e": "apps/host-e2e",
+    "payment": "apps/payment",
+    "payment-e2e": "apps/payment-e2e",
+    "search": "apps/search",
+    "search-e2e": "apps/search-e2e",
+    "shop": "apps/shop",
+    "shop-e2e": "apps/shop-e2e"
+  }
 }
