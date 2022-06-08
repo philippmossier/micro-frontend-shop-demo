@@ -109,52 +109,169 @@ Info: Beide Befehle servieren das ganze System. Mittels "--devRemotes" konfiguri
 
 ## Was wurde generiert ?
 
-Um zu verstehen wie Module Federation mit NX funktioniert, lass uns einen Blick auf die drei Dateien werfen die dieses Feature kontrollieren.
+Um zu verstehen wie Module Federation mit NX funktioniert, sind drei Dateien für die Kontrolle dieses Features verantwortlich.
+### "apps/host/project.json"
 
-First commit: BREAK HERE
----
+Wenn man einen Blick in die Datei "project.json" wirft sieht man unterschiedliche "targets". Das "build" "target" verwendet "@nrwl/web:webpack" als "executor". Das ist der selbe Prozess wie bei normalen SPA mit einer benutzerdefinierten "webpack configuration". Wenn man Module Federation verwendet  welche eine  beginnt mit benutzt unter "targets.build"
 
-### `apps/host/project.json`
+Wenn Module Federation verwendet wird, um die kontinuierliche Bereitsstellung "continious integration ("CI")" zu beschleunigen und die lokale Entwicklung zu verbessern, und nicht, um verschiedene Remotes unabhängig bereitzustellen, müssen implizite Abhängigkeiten zum Host definiert weden. In diesem Fall sind diese impliziten Abhängikeiten die remotes "shop", "payment" und "about".
+Das Hinzufügen von impliziten Abhängigkeiten macht auch verteilte Builds möglich.
 
-The `build` target uses `@nrwl/web:webpack` for React, and `@nrwl/angular:webpack-browser` for Angular. This is the same as a normal SPA that uses custom webpack configuration (`webpackConfig`), but difference is in the webpack configuration file.
-
-If you use Module Federation to speed up your CI and improve your local development, and not to deploy different remotes independently, you need to create implicit dependencies from the host to all the remotes. Semantically, the host and the remotes comprise one application, so you cannot build the host without the remotes. Adding implicit dependencies also makes distributed builds possible ([see below](#production-build-and-deployment)). To create these dependencies, add the `implicitDependencies` configuration.
-
-```text
+```
 // apps/host/project.json
 {
   //...
-  "implicitDependencies": ["about", "shop", "cart"]
+  "implicitDependencies": ["shop","payment","about"]
 }
 ```
 
-In the future, Nx may automatically handle this for you.
+### apps/host/webpack.config.js
 
-### `apps/host/webpack.config.js`
+Die Webpack-Konfiguration verwendet eine Hilfsfunktion "withModuleFederation", die durch Nx bereitstellt wird.
 
-The webpack configuration uses an utility function that Nx provides: `withModuleFederation`.
-
-```javascript
-// For Angular, you'll see `@nrwl/angular/module-federation`
+```
+// apps/host/webpack.config.js
 const withModuleFederation = require('@nrwl/react/module-federation');
 const moduleFederationConfig = require('./module-federation.config');
+
 module.exports = withModuleFederation({
   ...moduleFederationConfig,
 });
 ```
 
-We'll talk about [what `withModuleFederation` does](#what-does-withmodulefederation-do) in a bit, but for now the important part of the configuration is the use of `module-federation.config.js` which we will examine next.
+Die Funktion, "withModuleFederation" wird später noch genauer erläutert, aber im Moment ist der wichtige Teil der Konfiguration die Verwendung von "module-federation.config.js", die im folgenden Schritt nun näher untersucht wird.
+### apps/host/module-federation.config.js
 
-### `apps/host/module-federation.config.js`
-
-This file is the main configuration for the `host`, and you'll see `module-federation.config.js` for the generated remotes as well.
-
-```javascript
+```
+// apps/host/module-federation.config.js
 module.exports = {
   name: 'host',
-  remotes: ['shop', 'cart', 'about'],
+  remotes: ['shop','payment','about'],
 };
 ```
+
+Der erforderliche Wert "name" ist die Magie, um den Host und die Remotes miteinander zu verbinden. Die "host" Anwendung verweist auf drei "remotes mit ihrem Namen.
+
+### Was bedeutet die durch NX bereitgestellte Funktion "withModuleFederation"
+Bei dieser Funktion handelt es sich um eine Abstraktion von Webpacks Module Federation Plugin. Somit vereinfacht NX die Webpack Configuration für Module Federation. Im Vergleich dazu würde eine Standard Module Federation Konfiguration ohne NX so aussehen:
+
+```
+// Standard webpack.config.js without NX
+new ModuleFederationPlugin({
+  name: "host",
+  filename: "hostRemoteEntry.js",
+  remotes: {
+    shop: 'shop@http://localhost:4201/shopRemoteEntry.js',
+    payment: 'payment@http://localhost:4202/paymentRemoteEntry.js',
+    about: 'about@http://localhost:4203/aboutRemoteEntry.js',
+  },
+  shared: {
+    react: { singleton: true, requiredVersion: PACKAGE.dependencies.react },
+    "react-dom": { singleton: true, requiredVersion: PACKAGE.dependencies.react },,
+    "react-router-dom": { singleton: true, requiredVersion: PACKAGE.dependencies.react },,
+    },
+})
+```
+
+Nun sieht man das ohne NX zusätzlich "filename" und "shared" definiert werden muss. Während "filename" nur auf den "bundle" Namen referenziert, handelt es sich bei "shared" um eine ganz wichtige Funktion die Module Federation bietet, welche im nächsten Kapitel genauer ausgeführt wird. 
+
+Wenn man nun die Standard "webpack.config.js" mit jener von NX vergleicht, sieht man das NX einige Funktionen zur Verfügung stellt wie:
+- Alle Bibliotheken (npm und Arbeitsbereich) sind standardmäßig gemeinsam genutzte "singletons", sodass man diese nicht manuell mittels "requiredVersion" konfigurieren muss.
+- Bei "remotes" wird nur auf den Namen verwiesen, da Nx weiß, auf welchen Ports jedes Remote läuft (im Entwicklungsmodus).
+
+## Konfigurieren von "remotes"
+
+Im Vergleich zu der "module-federation.config" der "host" Awendung, definiert man bei einem "remote" immer den Wert "exposes", welcher den Pfad zu den geteilten Dateien definiert. Dies kann ein Pfad sein der die kompletten Anwendung teilt z.B. durch "src/App.tsx" oder auch nur einen kleinen Teil vom "remote" teilt wie z.B. eine "Button" Komponente mittels "src/components/Button.tsx".
+
+```
+// apps/about/module-federation.config.js
+module.exports = {
+  name: 'about',
+  exposes: {
+    './Module': './src/remote-entry.ts',
+  },
+};
+```
+
+Im Grunde sind die Werte "remotes" (Was konsumiert wird) und "exposes" (was geteilt wird) jene Inidikatoren, die die Struktur einer "Module-Federation-Anwendung" beschreiben. Ein "remote" könnte neben der Bereitstellung von Dateien mittels "exposes", auch andere "remotes" konsumieren. In diesem Fall müssen innerhalb der "module-federation.config" zusätzlich "remotes" definiert werden. 
+
+Angenommen es gäbe ein Team welches sich um die Suche und das filtern von Produkten kümmert, und ein Micro Frontend mit den Namen "search" erstellt. Dieses "search" MF oder auch "remote" genannt, soll dann im weiteren Verlauf auf der "/" Route dargestellt werden. Wenn man sich nun noch einmal das Architekturdiagramm XY ansieht, dann erkennt man das auf der "/" Route die "ShopPage" gerendert wird. Nun soll sich also das "shop remote" mit dem "search remote" eine Seite teilen. Das bedeutet das man nun nicht mehr von einer vertikalen Aufteilung von MF spricht ("vertical-split"), sondern von einer horizontalen Komposition ("horizontal-split"). Dieses Ergebnis könnte nun ganz einfach mit folgender "module-federation.config.js" erreicht werden.
+
+```
+// apps/about/module-federation.config.js
+module.exports = {
+  name: 'shop',
+  exposes: {
+    './Module': './src/ShopPage.tsx',
+  },
+  remotes: ["search"]
+};
+```
+
+Dies setzt natürlich vorraus das man innerhalb der Datei "ShopPage.tsx" auch das "search remote" an der gewünschten Stelle im Code platziert, jedoch erkennt man durch dieses Beispiel sofort die hohe Flexibilität die einem Module Federation bietet.
+
+## "sharing dependencies" Module Federations Alleinstellungsmerkmal
+
+Wenn man noch einmal einen Blick in das Kapitel "Was bedeutet die durch NX bereitgestellte Funktion "withModuleFederation"" wirft, sieht man das in der "webpack.config.js" die Option "shared" definiert wurde. Bei dieser Funktion handelt es sich um Webpacks Alleinstellungsmerkmal Abhängigkeiten innerhalb der Micro Frontend Landschaft zu teilen.
+
+Während manche MF-Frameworks wie "mashroom-portal" gar keine Möglichkeiten bieten "dependencies" zu teilen, bieten andere MF-Frameworks wie "single-spa" oder "piral" nur bedingt Möglichkeiten an.
+Bei "single-spa" könnte man diese über sogenannte "import-maps" teilen, welche von einigen Browsern jedoch nicht unterstützt werden.
+
+Dabei ist das teilen von "dependencies" von sehr großer Bedeutung da dies großen Einfluss auf die "bundle-size" einer Webseite hat. Wenn eine Seite z.B. aus mehreren MF besteht ("horizontal-split") und auf dieser mehrmals das selbe Framework, eventuell noch mit unterschiedlichen Versionen geladen wird, dann kann das drastische Folgen für die Performance einer Webapplikation haben.
+
+Module Federation, bietet mittels "shared" eine sehr einfache und umfangreiche Funktion "dependencies" zu teilen. Zusätzlich hat man durch die Optionen "singleton", "requiredVersion" und "eager" die vollständige Kontrolle über das Teilen von Abhängigkeiten. Mittels "singleton" lässt sich steuern das die Abhängigkeit nur einmal geladen werden darf. Mit "eager" kann man dafür sorgen das diese Abhängigkeiten immer als erstes geladen werden anstatt diese über eine asynchrone Anforderung abzurufen. 
+
+Wenn man nun die Standard "webpack.config.js" mit jener von NX vergleicht, sieht man das NX einige Funktionen zur Verfügung stellt wie:
+- Alle Bibliotheken (npm und Arbeitsbereich) sind standardmäßig gemeinsam genutzte "singletons", sodass man diese nicht manuell mittels "requiredVersion" konfigurieren muss.
+- Bei "remotes" wird nur auf den Namen verwiesen, da Nx weiß, auf welchen Ports jedes Remote läuft (im Entwicklungsmodus).
+
+Info: Für den Produktionsmodus muss man url und port manuell in "webpack.config.prod" angeben, da NX nicht wissen kann auf welchen externen Container oder Server die "remote bundle files" abgelegt wurden. Mehr Details zu Deployment gibt es im letzten Kapitel. 
+
+## Teilen von Code ist nicht auf Micro Frontends limitiert
+
+Das teilen von Code, speziell innerhalb eines Module Federation Monorepos, ist nicht nur auf Micro Frontends ("remotes") limitiert. Es könnte auch eine Authentifizierungs-Bibliothek ("auth-lib") zwischen mehreren "remotes" geteilt werden. Diese "auth-lib" würde man in so einem Fall als "common library" bezeichnen, welche ebenfalls Teil des "monorepos" ist. In diesem Fall würde die "auth-lib" anstatt im "apps" Ordner, im "libs" Ordner einen geeigneten Platz finden. Hierzu gibt es einen wunderbar passenden Artikel von "angulararchitects.io" der den Verwendunszweck einer "auth-lib" sehr passend beschreibt.
+
+Diagramm XY zeigt ein MF "shell" und ein MF "mfe1". Beide teilen sich eine gemeinsame Bibliothek zur Authentifizierung "auth-lib", die sich ebenfalls im Monorepo befindet:
+
+FOTO 1: https://www.angulararchitects.io/en/aktuelles/using-module-federation-with-monorepos-and-angular/
+
+Die "auth-lib" stellt zwei Komponenten bereit. Eine meldet den Benutzer an und die andere zeigt den aktuellen Benutzer an. Diese Komponenten werden sowohl von der "Shell" als auch von mfe1 verwendet:
+
+FOTO2:
+
+
+In einem NX monorepo werden diese "libraries" typischerweise in "path mappings" definiert, welche entweder innerhalb "tsconfig.json" oder "tsconfig.base.json" defiiniert werden (abhängig vom Projekt Setup)
+
+```
+// tsconfig.json or tsconfig.base.json
+"paths": {
+    "@demo/auth-lib": [
+        "libs/auth-lib/src/index.ts"
+    ]
+},
+```
+ zu Anfang dieses  das diese Suche Teil der "shop" Route wird und wird 
+
+
+ z.B. ein anderes Team einen "search" Micro Frontend bauen möchte, welches innerhalb des "shop" Micro Frontend angezeigt wird, dann könnte solch eine Konfiguration so ausseheen.
+
+```
+// apps/about/module-federation.config.js
+module.exports = {
+  name: 'shop',
+  exposes: {
+    './Module': './src/ShopPage.ts',
+  },
+  remotes: ["search"]
+};
+```
+
+
+
+
+Durch die Verwendung von Module Federation wird der Anwendungserstellungsprozess "application build process" im Wesentlichen vertikal aufgeteilt. Auch eine vertikale Aufteilung ist möglich, indem man einige Bibliotheken "libraries" "buildable" macht. NX empfiehlt es nicht, alle Bibliotheken im Arbeitsbereich "buildable" zu machen, aber in einigen Szenarien kann es das "CI" beschleunigen, wenn einige große Bibliotheken am unteren Rand des Diagramms "buildable" gemacht werden.
+
+
 
 The required `name` property is the magic to link the host and remotes together. The `host` application references the three remotes by their names.
 
