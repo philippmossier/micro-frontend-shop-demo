@@ -1,16 +1,15 @@
 import styled from '@emotion/styled';
-import NxWelcome from './nx-welcome';
 
 const StyledApp = styled.div`
   // Your style here
+  display: flex;
+  justify-content: center;
 `;
 
-export function App() {
+export default function App() {
   return (
     <StyledApp>
-      <NxWelcome title="payment" />
+      <h1>--- PaymentPage ---</h1>
     </StyledApp>
   );
 }
-
-export default App;

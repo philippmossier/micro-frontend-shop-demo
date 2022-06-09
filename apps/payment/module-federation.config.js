@@ -1,6 +1,6 @@
 module.exports = {
   name: 'payment',
   exposes: {
-    './Module': './src/remote-entry.ts',
+    './Module': './src/payment-remote-entry.ts',
   },
 };

@@ -9,9 +9,9 @@ describe('App', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('should have a greeting as the title', () => {
+  it('should contain "Search Navbar" text', () => {
     const { getByText } = render(<App />);
 
-    expect(getByText(/Welcome search/gi)).toBeTruthy();
+    expect(getByText(/Search Navbar/gi)).toBeTruthy();
   });
 });

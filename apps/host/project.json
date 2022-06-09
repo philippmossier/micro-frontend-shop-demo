@@ -2,6 +2,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/host/src",
   "projectType": "application",
+  "implicitDependencies": ["shop", "payment", "about"],
   "targets": {
     "build": {
       "executor": "@nrwl/web:webpack",

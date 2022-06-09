@@ -9,9 +9,11 @@ describe('App', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('should have a greeting as the title', () => {
+  it('should contain "Search Navbar" and "ShopPage" text', () => {
     const { getByText } = render(<App />);
 
-    expect(getByText(/Welcome shop/gi)).toBeTruthy();
+    expect(getByText(/ShopPage/gi)).toBeTruthy();
+    expect(getByText(/Error Loading Search remote/gi)).toBeTruthy(); // Test cannot load search module without additional effort
+    // https://scriptedalchemy.medium.com/module-federation-how-do-we-create-unit-tests-for-it-bd0d73c999bc
   });
 });

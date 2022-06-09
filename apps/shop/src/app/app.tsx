@@ -1,16 +1,32 @@
 import styled from '@emotion/styled';
-import NxWelcome from './nx-welcome';
+import React from 'react';
+import wrapComponent from './ModuleFederationWrapper/wrapComponent';
+
+const Search = wrapComponent(React.lazy(() => import('search/Module')));
 
 const StyledApp = styled.div`
   // Your style here
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
 `;
 
-export function App() {
+const StyledPage = styled.div`
+  // Your style here
+  display: flex;
+  justify-content: center;
+`;
+
+export default function App() {
   return (
     <StyledApp>
-      <NxWelcome title="shop" />
+      <Search
+        delayed={<div>Loading Search ...</div>}
+        error={<div>Error Loading Search remote</div>}
+      />
+      <StyledPage>
+        <h1>--- Shoppage ---</h1>
+      </StyledPage>
     </StyledApp>
   );
 }
-
-export default App;

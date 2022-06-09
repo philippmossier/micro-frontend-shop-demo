@@ -1,16 +1,15 @@
 import styled from '@emotion/styled';
-import NxWelcome from './nx-welcome';
 
 const StyledApp = styled.div`
   // Your style here
+  display: flex;
+  justify-content: center;
 `;
 
-export function App() {
+export default function App() {
   return (
     <StyledApp>
-      <NxWelcome title="search" />
+      <h1>--- Search Navbar On top of the shop page ---</h1>
     </StyledApp>
   );
 }
-
-export default App;

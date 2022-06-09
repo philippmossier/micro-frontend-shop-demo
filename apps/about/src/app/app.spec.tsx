@@ -9,9 +9,9 @@ describe('App', () => {
     expect(baseElement).toBeTruthy();
   });
 
-  it('should have a greeting as the title', () => {
+  it('should contain "AboutPage" as text', () => {
     const { getByText } = render(<App />);
 
-    expect(getByText(/Welcome about/gi)).toBeTruthy();
+    expect(getByText(/AboutPage/gi)).toBeTruthy();
   });
 });
