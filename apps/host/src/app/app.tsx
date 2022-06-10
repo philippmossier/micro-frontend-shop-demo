@@ -16,13 +16,13 @@ export default function App() {
     <React.Suspense fallback={null}>
       <ul>
         <li>
-          <Link to="/">Home</Link>
+          <Link to="/"> Home </Link>
         </li>
         <li>
-          <Link to="/payment">Payment</Link>
+          <Link to="/payment"> Payment </Link>
         </li>
         <li>
-          <Link to="/about">About</Link>
+          <Link to="/about"> About </Link>
         </li>
       </ul>
       <Routes>

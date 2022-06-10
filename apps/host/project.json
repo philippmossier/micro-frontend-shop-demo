@@ -93,6 +93,13 @@
           "buildTarget": "host:build:production"
         }
       }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "rm -rf production && mkdir production && cp -r dist/apps/host/* production && cp -r dist/apps/shop production && cp -r dist/apps/payment production && cp -r dist/apps/search production && cp -r dist/apps/about production && http-server -p 3000 -a localhost production"
+      }
     }
   },
   "tags": []

@@ -9,7 +9,7 @@ const StyledApp = styled.div`
 export default function App() {
   return (
     <StyledApp>
-      <h1>--- Search Navbar On top of the shop page ---</h1>
+      <h1>---- Search Navbar On top of the shop page ----</h1>
     </StyledApp>
   );
 }

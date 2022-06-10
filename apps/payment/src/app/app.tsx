@@ -9,7 +9,7 @@ const StyledApp = styled.div`
 export default function App() {
   return (
     <StyledApp>
-      <h1>--- PaymentPage ---</h1>
+      <h1>---- PaymentPage ----</h1>
     </StyledApp>
   );
 }

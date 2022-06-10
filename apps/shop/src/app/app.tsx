@@ -25,7 +25,7 @@ export default function App() {
         error={<div>Error Loading Search remote</div>}
       />
       <StyledPage>
-        <h1>--- Shoppage ---</h1>
+        <h1>---- Shoppage ----</h1>
       </StyledPage>
     </StyledApp>
   );

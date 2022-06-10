@@ -21,5 +21,6 @@ module.exports = withModuleFederation({
    *   ['app2', '//example.com/path/to/app2/remoteEntry.js'],
    * ]
    */
-  remotes: [['search', '//localhost:4204/']],
+  // remotes: [['search', '//localhost:4204/']],
+  remotes: [['search', 'http://localhost:3000/search']],
 });

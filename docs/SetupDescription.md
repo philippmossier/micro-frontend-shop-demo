@@ -62,7 +62,7 @@ Diese Befehle fallen in drei Kategorien:
 Im ersten Schritt muss zuerst ein monorepo erstellt werden. Mithilfe der NX-CLI option `--preset` kann man ein monorepo erstellen welches bereits auf ein bestimmtes Framework vorkonfiguriert ist, oder einfach ein leeres monorepo erstellen. In unserem Fall erstellen wir ein leeres monorepo und bauen uns schrittweise eine Micro-Frontend-Landschaft auf. 
 
 ```
-npx create-nx-workspace@14.2.1 microfrontends-monorepo --preset=empty --nxCloud=true
+npx create-nx-workspace@14.2.4 microfrontends-monorepo --preset=empty --nxCloud=true
 cd microfrontends-monorepo
 ```
 
@@ -80,7 +80,7 @@ Dieser Befehl erstellt ein minimal vorkonfiguriertes monorepo setup mit folgende
 Nutzer des Frameworks react müssen noch das Plugin `@nrwl/react` installieren.
 
 ```
-npm install --save-dev @nrwl/react@14.2.1
+npm install --save-dev @nrwl/react@14.2.4
 ```
 
 Mittels @nrwl/react lassen sich nun host und remote Applikationen generieren.
@@ -110,6 +110,7 @@ Info: Beide Befehle servieren das ganze System. Mittels "--devRemotes" konfiguri
 ## Was wurde generiert ?
 
 Um zu verstehen wie Module Federation mit NX funktioniert, sind drei Dateien für die Kontrolle dieses Features verantwortlich.
+
 ### "apps/host/project.json"
 
 Wenn man einen Blick in die Datei "project.json" wirft sieht man unterschiedliche "targets". Das "build" "target" verwendet "@nrwl/web:webpack" als "executor". Das ist der selbe Prozess wie bei normalen SPA mit einer benutzerdefinierten "webpack configuration". Wenn man Module Federation verwendet  welche eine  beginnt mit benutzt unter "targets.build"
@@ -250,9 +251,127 @@ In einem NX monorepo werden diese "libraries" typischerweise in "path mappings" 
     ]
 },
 ```
- zu Anfang dieses  das diese Suche Teil der "shop" Route wird und wird 
+
+# Deployment
+
+Da Bibliotheken normalerweise keine Versionen in einem Monorepo haben, sollten immer alle geänderten MF zusammen erneut "deployed" werden. Nx nimmt einem viel Arbeit ab, indem es dabei hilft die geänderten Codeteile aufzuzeigen damit man sofort weiss welche Teile neu "deployed" werden müssen und welche unverändert blieben.
+
+Mit folgendem Befehl kann man den aktuellen "feature branch" gegen den "main branch" vergleichen.
+```
+nx print-affected --base=main --head=HEAD
+```
+
+Zu Beginn muss sichergestellt werden dass implizite Abhängigkeiten vom Host zu jedem Remote richtig definiert wurden. Im "shop remote" muss das "search remote" ebenfalls als implizite Abhängigkeit eingetragen werden. Für das "deployment" sind folgende 2 Dateien von großer Bedeutung. "webpack.config.prod.js" und "project.json"
+
+Innerhalb von "webpack.config.prod.js" ist es wichtig die "remote urls" anzugeben. 
+
+```
+// apps/host/webpack.config.prod.js
+const withModuleFederation = require('@nrwl/react/module-federation');
+const moduleFederationConfig = require('./module-federation.config');
+
+module.exports = withModuleFederation({
+  ...moduleFederationConfig,
+  remotes: [
+    ['shop', 'http://localhost:3000/shop'],
+    ['payment', 'http://localhost:3000/payment'],
+    ['about', 'http://localhost:3000/about'],
+  ],
+});
+```
+
+Info: Da dieses "test deployment" lokal simuliert wird, werden auch nur "localhost urls" verwendet. In einer Produktionsumgebung müssen diese gegen echte Pfade ausgetauscht werden wie z.B. "//example.com/path/to/app1/remoteEntry.js". 
+
+```
+// apps/host/project.json
+{
+  //...
+  "implicitDependencies": ["shop","payment","about"]
+}
+```
+
+Die Änderungen der letzten zwei Dateien müssen zusätzlich im "shop remote" vorgenommen werden, da dieses das "search remote" als implizite Abhängikeit aufweist.
+Um die Verlinkung des "host" und der "remotes" zu überprüfen, kann man nun den Befehl "nx graph" ausführen.
+Die richtige Verlinkung kann man aus folgdender Grafik entnehmen:
+
+GRAPH GRAFIK
+
+Wenn die Projekte richtig verlinkt ist kann der Befehl "npx build host" ausgeführt werden um alle impliziten Abhängigkeiten im Produktionsmodus zu bauen. 
+Im dist-Ordner sollte nun folgende Ordnerstruktur zu finden sein :
+
+```treeview
+dist/apps
+├── about
+├── host
+├── payment
+├── search
+└── shop
+```
+
+Da nun alle Codepakete für einen "Produktionsbuild" vorhanden sind, kann man diesen mit folgenden Befehl lokal simulieren:
+```
+npx nx g @nrwl/workspace:run-command deploy --project=host \
+--command="rm -rf production && mkdir production && \
+cp -r dist/apps/host/* production && \
+cp -r dist/apps/shop production && \
+cp -r dist/apps/payment production && \
+cp -r dist/apps/search production && \
+cp -r dist/apps/about production && \
+http-server -p 3000 -a localhost production"
+```
+
+Dadurch wird der obige Befehl dem Kürzel "nx deploy host" zugewiesen, und unter "apps/host/project.json" gespeichert. Dadurch wird der Befehl nicht nur im richtigen Projektordner gespeichert, sondern kann dieser nun in Zukunft mit dem Kürzel "nx deploy host" ausgeführt werden. Die lokal "deployte" Anwendung ist nun unter "http://localhost:3000" erreichbar.
+
+Wenn man sich nun den "production" Ordner ansieht dann sollten alle 4 "remotes" die Datei "remoteEntry.js" beinhalten. Die Host Anwendung ist dadurch erkennbar das diese keine "remoteEntry.js" aufweist und deren Dateien den anderen Ordnern übergeordnet sind was folgender "filetree" noch einmal verdeutlicht.
+
+```treeview
+production/
+├── about
+│   ├── remoteEntry.js
+│   └── (...)
+├── assets
+│   └── .gitkeep
+├── payment
+│   ├── remoteEntry.js
+│   └── (...)
+├── search
+│   ├── remoteEntry.js
+│   └── (...)
+├── shop
+│   ├── remoteEntry.js
+│   └── (...)
+├── index.html
+└── (...)
+```
+
+-- BREAK
+
+ zusätzlich in in  Falls Sie dies noch nicht eingerichtet haben, fügen Sie die folgende Zeile zur Projektkonfiguration des Hosts hinzu.
+
+Bevor Stellen Sie zunächst sicher, dass Sie implizite Abhängigkeiten vom Host zu jedem Remote haben. Falls Sie dies noch nicht eingerichtet haben, fügen Sie die folgende Zeile zur Projektkonfiguration des Hosts hinzu.
+
+```
+// apps/host/webpack.config.prod.js
+const withModuleFederation = require('@nrwl/react/module-federation');
+const moduleFederationConfig = require('./module-federation.config');
+
+module.exports = withModuleFederation({
+  ...moduleFederationConfig,
+  remotes: [
+    ['shop', 'http://localhost:3000/shop'],
+    ['cart', 'http://localhost:3000/cart'],
+    ['about', 'http://localhost:3000/about'],
+  ],
+});
+```
 
 
+
+
+
+
+
+ zu Anfang dieses  das diese Suche Teil der "shop" Route wird und wird.
  z.B. ein anderes Team einen "search" Micro Frontend bauen möchte, welches innerhalb des "shop" Micro Frontend angezeigt wird, dann könnte solch eine Konfiguration so ausseheen.
 
 ```
@@ -268,6 +387,9 @@ module.exports = {
 
 
 
+
+Micro Frontends können genauso ohne Monorepo gebaut werden. 
+Durch die Kombination von Monorepo und Micro Frontend stehen einem alle Möglichkeiten offen zur Strukturiere
 
 Durch die Verwendung von Module Federation wird der Anwendungserstellungsprozess "application build process" im Wesentlichen vertikal aufgeteilt. Auch eine vertikale Aufteilung ist möglich, indem man einige Bibliotheken "libraries" "buildable" macht. NX empfiehlt es nicht, alle Bibliotheken im Arbeitsbereich "buildable" zu machen, aber in einigen Szenarien kann es das "CI" beschleunigen, wenn einige große Bibliotheken am unteren Rand des Diagramms "buildable" gemacht werden.
 
