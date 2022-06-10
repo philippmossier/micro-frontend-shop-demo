@@ -89,9 +89,20 @@ Mittels @nrwl/react lassen sich nun host und remote Applikationen generieren.
 npx nx generate @nrwl/react:host host --remotes=shop,payment,about,search --style=@emotion/styled
 ```
 
-Info: Wenn man die Option --style weglässt dann bekommt man von der CLI eien Reihe von Stylesheet-Formaten zur Auswahl. Welches man dabei wählt ist Geschmacksache. In diesen Fall wurde mit "@emotion/styled" eine "CSS in JS" Variante gewählt. 
+Nun sollten folgende 5 Anwendungen im "apps" Ordner zu finden sein. (exclusive der autogenerierten "e2e" Ordner, welche nur für End to End Tests relevant sind.)
 
-Nun fehlt nur noch ein Befehl um die `host` Anwendung im Browser anzusehen. Folgender Befehl startet die `host` Anwendung:
+```treeview
+apps folder (excl e2e)
+├── about
+├── host
+├── payment
+├── search
+├── shop
+```
+
+Info: Wenn man die Option "--style" weglässt dann bekommt man von der CLI eien Reihe von Stylesheet-Formaten zur Auswahl. Mit welchen tools man sein APP "stylen" möchte, bleibt jedoch der Entwicklerin oder dem Entwickler überlassen. NX bietet dabei eine umfangreiche Auswahl an, angefangen vom klassischen "CSS" bishin zu einigen "CSS in JS" Lösungen.
+
+Mit folgendem Befehl kann nun die `host` Anwendung gestartet werden:
 
 ```bash
 npx nx serve host --open
