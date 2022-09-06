@@ -1,37 +1,83 @@
+# Micro Frontend Demo
 
+🛠️ build with
 
-# NxWmfReactShopDemo
+- Module Federation
+- NX-Monorepo
+- React
+- Typescript
 
-This project was generated using [Nx](https://nx.dev).
+## Micro Frontend Architecture
 
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="450"></p>
+![Micro Frontend Architecture](/docs/architecture.png)
 
-🔎 **Smart, Fast and Extensible Build System**
+---
 
-## Adding capabilities to your workspace
+💡 For a german description visit the docs folder
 
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
+## CLI commands
 
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
+### Start project (Serve host and remotes)
 
-Below are our core plugins:
+```
+npx nx serve host --devRemotes=shop,payment,about,search
+```
 
-- [React](https://reactjs.org)
-  - `npm install --save-dev @nrwl/react`
-- Web (no framework frontends)
-  - `npm install --save-dev @nrwl/web`
-- [Angular](https://angular.io)
-  - `npm install --save-dev @nrwl/angular`
-- [Nest](https://nestjs.com)
-  - `npm install --save-dev @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `npm install --save-dev @nrwl/express`
-- [Node](https://nodejs.org)
-  - `npm install --save-dev @nrwl/node`
+The host app and the remotes are now accessable on:
 
-There are also many [community plugins](https://nx.dev/community) you could add.
+- host: `http://localhost:4200/`
+- shop: `http://localhost:4201/`
+- payment: `http://localhost:4202/`
+- about: `http://localhost:4203/`
+- search: `http://localhost:4204/`
 
-## Generate an application
+💡 Last time tested on 06.Sept 2022 with node 16.17.0
+
+### Test selected apps from root directory
+
+```
+npx nx test shop
+npx nx test host
+npx nx run-many --target=test --projects=shop,search
+npx nx run-many --target=test --projects=shop,search --parallel=2
+```
+
+### Test all apps
+
+```
+npx nx run-many --target=test --all
+```
+
+### Understand your workspace dependencies
+
+```
+npx nx graph
+```
+
+### Simulate host deployment
+
+```
+npx nx g @nrwl/workspace:run-command deploy --project=host \
+--command="rm -rf production && mkdir production && \
+cp -r dist/apps/host/* production && \
+cp -r dist/apps/shop production && \
+cp -r dist/apps/payment production && \
+cp -r dist/apps/search production && \
+cp -r dist/apps/about production && \
+http-server -p 3000 -a localhost production"
+```
+
+The deploy command got stored into `nx deploy host` and is now ready for execution!
+
+## Well done
+
+If you wan't a detailed german setup description visit the docs folder.
+
+---
+
+## Other usefull commands
+
+### Generate an application
 
 Run `nx g @nrwl/react:app my-app` to generate an application.
 
@@ -39,7 +85,7 @@ Run `nx g @nrwl/react:app my-app` to generate an application.
 
 When using Nx, you can create multiple applications and libraries in the same workspace.
 
-## Generate a library
+### Generate a library
 
 Run `nx g @nrwl/react:lib my-lib` to generate a library.
 
@@ -47,48 +93,30 @@ Run `nx g @nrwl/react:lib my-lib` to generate a library.
 
 Libraries are shareable across libraries and applications. They can be imported from `@nx-wmf-react-shop-demo/mylib`.
 
-## Development server
+### Development server
 
-Run `nx serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
+Run `nx serve my-app` for a dev server. Navigate to <http://localhost:4200/>. The app will automatically reload if you change any of the source files.
 
-## Code scaffolding
+### Code scaffolding
 
 Run `nx g @nrwl/react:component my-component --project=my-app` to generate a new component.
 
-## Build
+### Build
 
 Run `nx build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-## Running unit tests
+### Running unit tests
 
 Run `nx test my-app` to execute the unit tests via [Jest](https://jestjs.io).
 
 Run `nx affected:test` to execute the unit tests affected by a change.
 
-## Running end-to-end tests
+### Running end-to-end tests
 
 Run `nx e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
 
 Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
 
-## Understand your workspace
-
-Run `nx graph` to see a diagram of the dependencies of your projects.
-
 ## Further help
 
 Visit the [Nx Documentation](https://nx.dev) to learn more.
-
-
-
-## ☁ Nx Cloud
-
-### Distributed Computation Caching & Distributed Task Execution
-
-<p style="text-align: center;"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-cloud-card.png"></p>
-
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
-
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
-
-Visit [Nx Cloud](https://nx.app/) to learn more.

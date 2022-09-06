@@ -1,10 +1,11 @@
 ## Architektur Überblick
+
 This descritpion uses [faster-builds](https://github.com/nrwl/nx/blob/5251bd73acb5ac52d37b0795e26346b02dba24f7/docs/shared/guides/module-federation/faster-builds.md?plain=1) as reference.
 
 Mit Module Federation, wird eine große Anwendung aufgeteilt in:
 
 1. Eine **Host** Anwendung, welche externe Anwendungen referenziert.
-2. **Remote** Anwendungen, die eine einzelne Domain oder ein Feature abbilden. 
+2. **Remote** Anwendungen, die eine einzelne Domain oder ein Feature abbilden.
 Ob die Domain nun eine ganze Seite abbildet oder nur eine kleine subdomain, bleibt dem Team überlassen.
 
 Im folgenden Teil sieht man ein Beispiel einer Anwendung welche aus einer Host App (`host`) und vier remotes (`shop`,`payment`,`about`,`search`) besteht.
@@ -40,14 +41,15 @@ Das bedeutet *nicht* das ein `remote` kein anderes `remotes` konsumieren kann. L
 In vielen codebases wird die `host` Anwendung auch `shell` oder `application-shell` genannt, bedeuten jedoch dasselbe.
 
 Die jeweiligen Kommandozeilen Befehle die zum erstellen des Prototyps verwendet werden, sind in folgende Gruppen unterteilt:
+
 - Linux Befehle (cd, mkdir)
 - Node Package Manager Befehle (npm, npx)
 - NX-CLI Befehle (nx generate, nx serve)
 
 Da Node und Linux Befehle jedem Frontend Entwickler vertraut sein sollten, werde ich lediglich auf die NX-CLI Befehle näher eingehen.
 
-Bei NX(https://nx.dev/) handelt is sich um ein Build System was von Frontend Experten entwickelt wurde. NX ist ein Produkt des Unternehmens nrwl (https://nrwl.io/) welches von Angular Teammitgliedern und ehemaligen Google Mitarbeitern gegründet wurde. NX betitelt deren Produkt als "Smart, Fast and Extensible Build System. Next generation build system with first class monorepo support and powerful integrations". 
-Da es sich bei NX um ein "Build System & Monorepo Tool" handelt wird die NX-CLI vorwiegend zum konfiguirieren und verwalten des monorepos verwendet. Es werden zwar auch Befehle verwendet wie `nx serve` um code auszuführen, diese sind jedoch sehr ähnlich zu einem über npm ausgeführtem Befehl wie `npm serve`. 
+Bei NX(<https://nx.dev/>) handelt is sich um ein Build System was von Frontend Experten entwickelt wurde. NX ist ein Produkt des Unternehmens nrwl (<https://nrwl.io/>) welches von Angular Teammitgliedern und ehemaligen Google Mitarbeitern gegründet wurde. NX betitelt deren Produkt als "Smart, Fast and Extensible Build System. Next generation build system with first class monorepo support and powerful integrations".
+Da es sich bei NX um ein "Build System & Monorepo Tool" handelt wird die NX-CLI vorwiegend zum konfiguirieren und verwalten des monorepos verwendet. Es werden zwar auch Befehle verwendet wie `nx serve` um code auszuführen, diese sind jedoch sehr ähnlich zu einem über npm ausgeführtem Befehl wie `npm serve`.
 Mittels NX-CLI lassens sich viele Befehle ausführen die man zum entwickeln einer Frontend Anwendung benätigt. Der eigentliche Quellcode wird durch NX nicht beeinflusst, lediglich das aufsetzen, verwalten und arbeiten innerhalb einer Codebasis wird dadurch erleichtert.
 
 Um die NX-CLI zu verwenden kann man entweder `nx` oder `npx nx` verwenden. Die kürzere Version `nx` funktioniert jedoch nur wenn man `nx` global auf seinen Rechner mittels `npm install --global nx` installiert. Mit dem prefix npx (was für `node package execute` steht) kann man auch nicht installierte `node packages` ausführen. Es ist also ganz egal ob man `npx nx` oder `nx` verwendet.
@@ -59,7 +61,7 @@ Diese Befehle fallen in drei Kategorien:
 - Code ändern/generieren (generate, create-nx-workspace...)
 - Verständnis der Codebasis (graph, list..)
 
-Im ersten Schritt muss zuerst ein monorepo erstellt werden. Mithilfe der NX-CLI option `--preset` kann man ein monorepo erstellen welches bereits auf ein bestimmtes Framework vorkonfiguriert ist, oder einfach ein leeres monorepo erstellen. In unserem Fall erstellen wir ein leeres monorepo und bauen uns schrittweise eine Micro-Frontend-Landschaft auf. 
+Im ersten Schritt muss zuerst ein monorepo erstellt werden. Mithilfe der NX-CLI option `--preset` kann man ein monorepo erstellen welches bereits auf ein bestimmtes Framework vorkonfiguriert ist, oder einfach ein leeres monorepo erstellen. In unserem Fall erstellen wir ein leeres monorepo und bauen uns schrittweise eine Micro-Frontend-Landschaft auf.
 
 ```
 npx create-nx-workspace@14.2.4 microfrontends-monorepo --preset=empty --nxCloud=true
@@ -152,6 +154,7 @@ module.exports = withModuleFederation({
 ```
 
 Die Funktion, "withModuleFederation" wird später noch genauer erläutert, aber im Moment ist der wichtige Teil der Konfiguration die Verwendung von "module-federation.config.js", die im folgenden Schritt nun näher untersucht wird.
+
 ### apps/host/module-federation.config.js
 
 ```
@@ -165,6 +168,7 @@ module.exports = {
 Der erforderliche Wert "name" ist die Magie, um den Host und die Remotes miteinander zu verbinden. Die "host" Anwendung verweist auf drei "remotes mit ihrem Namen.
 
 ### Was bedeutet die durch NX bereitgestellte Funktion "withModuleFederation"
+
 Bei dieser Funktion handelt es sich um eine Abstraktion von Webpacks Module Federation Plugin. Somit vereinfacht NX die Webpack Configuration für Module Federation. Im Vergleich dazu würde eine Standard Module Federation Konfiguration ohne NX so aussehen:
 
 ```
@@ -185,9 +189,10 @@ new ModuleFederationPlugin({
 })
 ```
 
-Nun sieht man das ohne NX zusätzlich "filename" und "shared" definiert werden muss. Während "filename" nur auf den "bundle" Namen referenziert, handelt es sich bei "shared" um eine ganz wichtige Funktion die Module Federation bietet, welche im nächsten Kapitel genauer ausgeführt wird. 
+Nun sieht man das ohne NX zusätzlich "filename" und "shared" definiert werden muss. Während "filename" nur auf den "bundle" Namen referenziert, handelt es sich bei "shared" um eine ganz wichtige Funktion die Module Federation bietet, welche im nächsten Kapitel genauer ausgeführt wird.
 
 Wenn man nun die Standard "webpack.config.js" mit jener von NX vergleicht, sieht man das NX einige Funktionen zur Verfügung stellt wie:
+
 - Alle Bibliotheken (npm und Arbeitsbereich) sind standardmäßig gemeinsam genutzte "singletons", sodass man diese nicht manuell mittels "requiredVersion" konfigurieren muss.
 - Bei "remotes" wird nur auf den Namen verwiesen, da Nx weiß, auf welchen Ports jedes Remote läuft (im Entwicklungsmodus).
 
@@ -205,7 +210,7 @@ module.exports = {
 };
 ```
 
-Im Grunde sind die Werte "remotes" (Was konsumiert wird) und "exposes" (was geteilt wird) jene Inidikatoren, die die Struktur einer "Module-Federation-Anwendung" beschreiben. Ein "remote" könnte neben der Bereitstellung von Dateien mittels "exposes", auch andere "remotes" konsumieren. In diesem Fall müssen innerhalb der "module-federation.config" zusätzlich "remotes" definiert werden. 
+Im Grunde sind die Werte "remotes" (Was konsumiert wird) und "exposes" (was geteilt wird) jene Inidikatoren, die die Struktur einer "Module-Federation-Anwendung" beschreiben. Ein "remote" könnte neben der Bereitstellung von Dateien mittels "exposes", auch andere "remotes" konsumieren. In diesem Fall müssen innerhalb der "module-federation.config" zusätzlich "remotes" definiert werden.
 
 Angenommen es gäbe ein Team welches sich um die Suche und das filtern von Produkten kümmert, und ein Micro Frontend mit den Namen "search" erstellt. Dieses "search" MF oder auch "remote" genannt, soll dann im weiteren Verlauf auf der "/" Route dargestellt werden. Wenn man sich nun noch einmal das Architekturdiagramm XY ansieht, dann erkennt man das auf der "/" Route die "ShopPage" gerendert wird. Nun soll sich also das "shop remote" mit dem "search remote" eine Seite teilen. Das bedeutet das man nun nicht mehr von einer vertikalen Aufteilung von MF spricht ("vertical-split"), sondern von einer horizontalen Komposition ("horizontal-split"). Dieses Ergebnis könnte nun ganz einfach mit folgender "module-federation.config.js" erreicht werden.
 
@@ -231,13 +236,14 @@ Bei "single-spa" könnte man diese über sogenannte "import-maps" teilen, welche
 
 Dabei ist das teilen von "dependencies" von sehr großer Bedeutung da dies großen Einfluss auf die "bundle-size" einer Webseite hat. Wenn eine Seite z.B. aus mehreren MF besteht ("horizontal-split") und auf dieser mehrmals das selbe Framework, eventuell noch mit unterschiedlichen Versionen geladen wird, dann kann das drastische Folgen für die Performance einer Webapplikation haben.
 
-Module Federation, bietet mittels "shared" eine sehr einfache und umfangreiche Funktion "dependencies" zu teilen. Zusätzlich hat man durch die Optionen "singleton", "requiredVersion" und "eager" die vollständige Kontrolle über das Teilen von Abhängigkeiten. Mittels "singleton" lässt sich steuern das die Abhängigkeit nur einmal geladen werden darf. Mit "eager" kann man dafür sorgen das diese Abhängigkeiten immer als erstes geladen werden anstatt diese über eine asynchrone Anforderung abzurufen. 
+Module Federation, bietet mittels "shared" eine sehr einfache und umfangreiche Funktion "dependencies" zu teilen. Zusätzlich hat man durch die Optionen "singleton", "requiredVersion" und "eager" die vollständige Kontrolle über das Teilen von Abhängigkeiten. Mittels "singleton" lässt sich steuern das die Abhängigkeit nur einmal geladen werden darf. Mit "eager" kann man dafür sorgen das diese Abhängigkeiten immer als erstes geladen werden anstatt diese über eine asynchrone Anforderung abzurufen.
 
 Wenn man nun die Standard "webpack.config.js" mit jener von NX vergleicht, sieht man das NX einige Funktionen zur Verfügung stellt wie:
+
 - Alle Bibliotheken (npm und Arbeitsbereich) sind standardmäßig gemeinsam genutzte "singletons", sodass man diese nicht manuell mittels "requiredVersion" konfigurieren muss.
 - Bei "remotes" wird nur auf den Namen verwiesen, da Nx weiß, auf welchen Ports jedes Remote läuft (im Entwicklungsmodus).
 
-Info: Für den Produktionsmodus muss man url und port manuell in "webpack.config.prod" angeben, da NX nicht wissen kann auf welchen externen Container oder Server die "remote bundle files" abgelegt wurden. Mehr Details zu Deployment gibt es im letzten Kapitel. 
+Info: Für den Produktionsmodus muss man url und port manuell in "webpack.config.prod" angeben, da NX nicht wissen kann auf welchen externen Container oder Server die "remote bundle files" abgelegt wurden. Mehr Details zu Deployment gibt es im letzten Kapitel.
 
 ## Teilen von Code ist nicht auf Micro Frontends limitiert
 
@@ -245,12 +251,11 @@ Das teilen von Code, speziell innerhalb eines Module Federation Monorepos, ist n
 
 Diagramm XY zeigt ein MF "shell" und ein MF "mfe1". Beide teilen sich eine gemeinsame Bibliothek zur Authentifizierung "auth-lib", die sich ebenfalls im Monorepo befindet:
 
-FOTO 1: https://www.angulararchitects.io/en/aktuelles/using-module-federation-with-monorepos-and-angular/
+FOTO 1: <https://www.angulararchitects.io/en/aktuelles/using-module-federation-with-monorepos-and-angular/>
 
 Die "auth-lib" stellt zwei Komponenten bereit. Eine meldet den Benutzer an und die andere zeigt den aktuellen Benutzer an. Diese Komponenten werden sowohl von der "Shell" als auch von mfe1 verwendet:
 
 FOTO2:
-
 
 In einem NX monorepo werden diese "libraries" typischerweise in "path mappings" definiert, welche entweder innerhalb "tsconfig.json" oder "tsconfig.base.json" defiiniert werden (abhängig vom Projekt Setup)
 
@@ -268,13 +273,14 @@ In einem NX monorepo werden diese "libraries" typischerweise in "path mappings" 
 Da Bibliotheken normalerweise keine Versionen in einem Monorepo haben, sollten immer alle geänderten MF zusammen erneut "deployed" werden. Nx nimmt einem viel Arbeit ab, indem es dabei hilft die geänderten Codeteile aufzuzeigen damit man sofort weiss welche Teile neu "deployed" werden müssen und welche unverändert blieben.
 
 Mit folgendem Befehl kann man den aktuellen "feature branch" gegen den "main branch" vergleichen.
+
 ```
 nx print-affected --base=main --head=HEAD
 ```
 
 Zu Beginn muss sichergestellt werden dass implizite Abhängigkeiten vom Host zu jedem Remote richtig definiert wurden. Im "shop remote" muss das "search remote" ebenfalls als implizite Abhängigkeit eingetragen werden. Für das "deployment" sind folgende 2 Dateien von großer Bedeutung. "webpack.config.prod.js" und "project.json"
 
-Innerhalb von "webpack.config.prod.js" ist es wichtig die "remote urls" anzugeben. 
+Innerhalb von "webpack.config.prod.js" ist es wichtig die "remote urls" anzugeben.
 
 ```
 // apps/host/webpack.config.prod.js
@@ -291,7 +297,7 @@ module.exports = withModuleFederation({
 });
 ```
 
-Info: Da dieses "test deployment" lokal simuliert wird, werden auch nur "localhost urls" verwendet. In einer Produktionsumgebung müssen diese gegen echte Pfade ausgetauscht werden wie z.B. "//example.com/path/to/app1/remoteEntry.js". 
+Info: Da dieses "test deployment" lokal simuliert wird, werden auch nur "localhost urls" verwendet. In einer Produktionsumgebung müssen diese gegen echte Pfade ausgetauscht werden wie z.B. "//example.com/path/to/app1/remoteEntry.js".
 
 ```
 // apps/host/project.json
@@ -307,7 +313,7 @@ Die richtige Verlinkung kann man aus folgdender Grafik entnehmen:
 
 GRAPH GRAFIK
 
-Wenn die Projekte richtig verlinkt ist kann der Befehl "npx build host" ausgeführt werden um alle impliziten Abhängigkeiten im Produktionsmodus zu bauen. 
+Wenn die Projekte richtig verlinkt ist kann der Befehl "npx build host" ausgeführt werden um alle impliziten Abhängigkeiten im Produktionsmodus zu bauen.
 Im dist-Ordner sollte nun folgende Ordnerstruktur zu finden sein :
 
 ```treeview
@@ -320,6 +326,7 @@ dist/apps
 ```
 
 Da nun alle Codepakete für einen "Produktionsbuild" vorhanden sind, kann man diesen mit folgenden Befehl lokal simulieren:
+
 ```
 npx nx g @nrwl/workspace:run-command deploy --project=host \
 --command="rm -rf production && mkdir production && \
@@ -355,36 +362,7 @@ production/
 └── (...)
 ```
 
-Micro Frontends können genauso ohne Monorepo gebaut werden. 
+Micro Frontends können genauso ohne Monorepo gebaut werden.
 Durch die Kombination von Monorepo und Micro Frontend stehen einem alle Möglichkeiten offen zur Strukturiere
 
 Durch die Verwendung von Module Federation wird der Anwendungserstellungsprozess "application build process" im Wesentlichen vertikal aufgeteilt. Auch eine vertikale Aufteilung ist möglich, indem man einige Bibliotheken "libraries" "buildable" macht. NX empfiehlt es nicht, alle Bibliotheken im Arbeitsbereich "buildable" zu machen, aber in einigen Szenarien kann es das "CI" beschleunigen, wenn einige große Bibliotheken am unteren Rand des Diagramms "buildable" gemacht werden.
-
-END
----
-
-## Notes from NX
-
-## Using buildable libs
-
-By using Module Federation you essentially split your application build process vertically. You can also split it horizontally by making some libraries buildable.
-
-We don't recommend making all libraries in your workspace buildable--it will make some things faster but many other things slower. But in some scenarios making a few large libraries at the bottom of your graph buildable can speed up your CI.
-
-Because Nx Cloud's Distributed Tasks Execution works with any task graph, having buildable libraries is handled automatically. If you have a buildable `components` library that all remotes depend on, Nx Cloud will build the library first before building the remotes.
-
-## Summary
-
-You could use Module Federation to implement [micro frontends](/module-federation/micro-frontend-architecture), but this guide showed how to use it to speed up your builds.
-
-Module Federation allows you to split a single build process into multiple processes which can run in parallel or even on multiple machines. The result of each build process can be cached independently. For this to work well in practice you need to have a build system supporting distributed computation caching and distributed tasks execution (e.g., Nx + Nx Cloud).
-
-When a developer runs say `nx serve host --devRemotes=cart`, they still run the whole application, but `shop` and `about` are served statically, from cache. As a result, the serve time and the time it takes to see the changes on the screen go down, often by an order of magnitude.
-
-When a CI machine runs say `nx build host --configuration=production`, the `shop`, `about` and `cart` remotes will either be build on separate machines or retrieved from cache. Once all of them are built, the build process for `host` will combine the file artifacts from all the remotes. Nx Cloud takes care of distributing the tasks and moving file artifacts across machines. As a result, the worst case scenario build time (when nothing is cached) goes from building all the code to building the largest remote, which is often an order of magnitude faster.
-
-## Resources
-
-- [React Module Federation example](https://github.com/nrwl/react-module-federation)
-- [Angular Module Federation example](https://github.com/nrwl/ng-module-federation)
-
