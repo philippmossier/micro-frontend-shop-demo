@@ -1,6 +1,6 @@
 ## Architektur Überblick
 
-This descritpion uses [faster-builds](https://github.com/nrwl/nx/blob/5251bd73acb5ac52d37b0795e26346b02dba24f7/docs/shared/guides/module-federation/faster-builds.md?plain=1) as reference.
+This descritpion uses [faster-builds](https://github.com/nrwl/nx/blob/5251bd73acb5ac52d37b0795e26346b02dba24f7/docs/shared/guides/module-federation/faster-builds.md) as reference.
 
 Mit Module Federation, wird eine große Anwendung aufgeteilt in:
 
@@ -14,7 +14,7 @@ Obwohl alle Anwendungen unabhängig voneinander erstellt werden und daher keine 
 
 `Füge Bild ein von Host und remotes`
 
-![Host mit impliziten Abhängigkeiten zu remotes](/shared/guides/module-federation/dep-graph-2.png)
+![Host mit impliziten Abhängigkeiten zu remotes](/docs/architecture.png)
 
 **Hinweis:**
 Da der Code einer Codebase typischerweise komplett in Englisch geschrieben wird, verzichtet die nun folgende Implementationsbeschreibung darauf jeden einzelnen Begriff ins Deutsche zu übersetzen.

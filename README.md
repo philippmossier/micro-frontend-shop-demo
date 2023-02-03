@@ -13,7 +13,7 @@
 
 ---
 
-💡 For a german description visit the docs folder
+💡 For a detailed german description go to [/docs/Setup_german.md](/docs/Setup_german.md)
 
 ## CLI commands
 
