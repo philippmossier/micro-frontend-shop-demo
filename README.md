@@ -9,6 +9,9 @@
 
 ## Micro Frontend Architecture
 
+**5 Micro Frontends (apps folder): `host, about, search, shop, 
+payment`**
+
 ![Micro Frontend Architecture](/docs/architecture.png)
 
 ---
